@@ -31,3 +31,4 @@ class Budget(Base):
     )
 
     user = relationship("User", back_populates="budgets")
+    

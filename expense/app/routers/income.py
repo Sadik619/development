@@ -4,7 +4,9 @@ from storage.database import get_db
 from models.budget_model import Budget
 from models.expense_model import Expense
 from models.user_model import User
+from models.income_model import Income
 
+from services import querydata
 from fastapi import Depends
 from auth.auth import get_current_user
 from sqlalchemy.orm import Session
@@ -42,7 +44,7 @@ def get_income(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    income=querydata.income(db,current_user.id)
+    income=querydata.Income(db,current_user.id)
     return income
 
     # return (
