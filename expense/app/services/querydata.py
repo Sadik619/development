@@ -1,45 +1,48 @@
-from sqlalchemy import func
-from storage.database import get_db
-from sqlalchemy.future import select
-from models import income_model
+from sqlalchemy import select, func
+from sqlalchemy.ext.asyncio import AsyncSession
 
-summary = (
-    db.query(
-        func.sum(Expense.amount)
-    )
-    .filter(
-        Expense.user_id == user_id
-    )
-    .scalar()
-)
-async def income(db,current_user):
-    stmt = (
-        db.query(func.coalesce(func.sum(income_model.Income.amount), 0))
-        .filter(income_model.Income.user_id == current_user.id)
-        .scalar()
-    )
-    result = await db.execute(stmt)
-    total_income = result.all()
-    return total_income
+from models.expense_model import Expense
+from models.income_model import Income
 
-async def total_expense(db):
-    stmt = (
-        db.query(func.coalesce(func.sum(Income.amount), 0))
-        .filter(Income.user_id == current_user.id)
-        .scalar()
-    )
-    result = await db.execute(stmt)
-    total_income = result.all()
-    return total_income
 
-total_expense = (
-    db.query(func.coalesce(func.sum(Expense.amount), 0))
-    .filter(Expense.user_id == current_user.id)
-    .scalar()
-)
+class QueryData:
 
-transaction_count = (
-    db.query(Expense)
-    .filter(Expense.user_id == current_user.id)
-    .count()
-    )
+    @staticmethod
+    async def total_income(db: AsyncSession, user_id: int):
+        stmt = select(func.coalesce(func.sum(Income.amount), 0)).where(
+            Income.user_id == user_id
+        )
+
+        result = await db.execute(stmt)
+        return result.scalar()
+
+    @staticmethod
+    async def total_expense(db: AsyncSession, user_id: int):
+        stmt = select(func.coalesce(func.sum(Expense.amount), 0)).where(
+            Expense.user_id == user_id
+        )
+
+        result = await db.execute(stmt)
+        return result.scalar()
+
+    @staticmethod
+    async def transaction_count(db: AsyncSession, user_id: int):
+        stmt = select(func.count(Expense.id)).where(
+            Expense.user_id == user_id
+        )
+
+        result = await db.execute(stmt)
+        return result.scalar()
+
+    @staticmethod
+    async def dashboard_summary(db: AsyncSession, user_id: int):
+        income = await QueryData.total_income(db, user_id)
+        expense = await QueryData.total_expense(db, user_id)
+        transactions = await QueryData.transaction_count(db, user_id)
+
+        return {
+            "total_income": income,
+            "total_expense": expense,
+            "balance": income - expense,
+            "transaction_count": transactions,
+        }

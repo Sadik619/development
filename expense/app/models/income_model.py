@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, ForeignKey, Numeric, String, Date, DateT
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 
-from app.database import Base
+from storage.database import Base
 
 
 class Income(Base):
