@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 from schemas.income_schema import IncomeCreate
 router = APIRouter(
       prefix="",
-      tags=["expenses"],
+      tags=["income"],
       )
 @router.post("/income")
 def create_income(

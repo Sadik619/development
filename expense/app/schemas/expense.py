@@ -1,8 +1,11 @@
 from pydantic import BaseModel
 from datetime import date
+from typing import Optional
+
 
 class ExpenseCreate(BaseModel):
-    title: str
+    user_id: Optional[int] = None
+    category_id: Optional[int] = None
     amount: float
-    category: str
-    date: date
+    description: Optional[str] = None
+    expense_date: date
