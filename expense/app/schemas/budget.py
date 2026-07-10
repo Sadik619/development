@@ -4,7 +4,8 @@ from pydantic import BaseModel
 class BudgetCreate(BaseModel):
     month: int
     year: int
-    budget_amount: float
+    amount: float
+    
 
 
 class BudgetResponse(BaseModel):
@@ -12,7 +13,7 @@ class BudgetResponse(BaseModel):
     user_id: int
     month: int
     year: int
-    budget_amount: float
+    amount: float
 
     class Config:
         from_attributes = True

@@ -50,23 +50,24 @@ def get_budget(
         )
         .scalar()
     )
-
+    
     return {
-        "budget_amount": budget.budget_amount,
-        "spent_amount": spent,
-        "remaining_amount": budget.budget_amount - spent
-    }
+    "budget_amount": budget.amount,
+    "spent_amount": spent,
+    "remaining_amount": budget.amount - spent
+} if budget else {}
 
 
 
 @router.post("/", response_model=BudgetResponse)
 def create_budget(
     payload: BudgetCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     # Example: assigning budget to user with id=1
     # Replace this with current_user.id when authentication is added
-    user_id = 1
+    user_id = current_user.id
 
     existing = db.query(Budget).filter(
         Budget.user_id == user_id,
