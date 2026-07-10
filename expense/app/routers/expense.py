@@ -13,20 +13,43 @@ router = APIRouter(
       prefix="",
       tags=["expenses"],
       )
-@router.post("/expenses")
-async def create_expense(
-    payload: ExpenseCreate,
-    db: Session = Depends(get_db)
+@router.get("/me")
+def get_me(
+    current_user: User = Depends(get_current_user)
 ):
-    expense = Expense(**payload.dict())
+    return current_user
+# @router.post("/expenses")
+# async def create_expense(
+#     payload: ExpenseCreate,
+#     db: Session = Depends(get_db)
+# ):
+#     expense = Expense(**payload.dict())
+
+#     db.add(expense)
+#     db.commit()
+
+#     return {
+#         "message": "Expense Added"
+#     }
+@router.post("/expenses")
+def create_expense(
+    payload: ExpenseCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    expense = Expense(
+        user_id=current_user.id,
+        category_id=payload.category_id,
+        amount=payload.amount,
+        description=payload.description,
+        expense_date=payload.expense_date,
+    )
 
     db.add(expense)
     db.commit()
+    db.refresh(expense)
 
-    return {
-        "message": "Expense Added"
-    }
-
+    return expense
 @router.get("/expenses")
 def get_expenses(
     db: Session = Depends(get_db),

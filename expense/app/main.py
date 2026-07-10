@@ -17,5 +17,5 @@ app.include_router(expense.router, prefix="/expense", tags=["Expense"])
 app.include_router(income.router, prefix="/income", tags=["income"])
 app.include_router(category.router, prefix="/category", tags=["category"])
 app.include_router(user.router, prefix="/user", tags=["user"])
-app.include_router(login.router, prefix="/login", tags=["login"])
+app.include_router(login.router, tags=["login"])
 

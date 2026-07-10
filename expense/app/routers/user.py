@@ -16,6 +16,8 @@ def create_user(
     payload: UserCreate,
     db: Session = Depends(get_db)
 ):
+    print(payload.password)
+    print(len(payload.password))
     existing = db.query(User).filter(
         User.email == payload.email
     ).first()
