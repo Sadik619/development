@@ -20,7 +20,7 @@ class Budget(Base):
 
     year = Column(Integer, nullable=False)
 
-    budget_amount = Column(
+    amount = Column(
         Numeric(10, 2),
         nullable=False
     )
