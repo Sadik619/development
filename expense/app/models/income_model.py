@@ -18,15 +18,15 @@ class Income(Base):
 
     amount = Column(Numeric(10, 2), nullable=False)
 
-    source = Column(String(100), nullable=False)
+    # source = Column(String(100), nullable=False)
 
-    description = Column(String(255))
+    source = Column(String(255))
 
     income_date = Column(Date, nullable=False)
 
-    created_at = Column(
-        DateTime(timezone=True),
-        server_default=func.now()
-    )
+    # created_at = Column(
+    #     DateTime(timezone=True),
+    #     server_default=func.now()
+    # )
 
     user = relationship("User", back_populates="incomes")

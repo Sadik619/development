@@ -3,7 +3,7 @@ from datetime import date
 
 
 class IncomeCreate(BaseModel):
-    source: str
+    # user_id: int
     amount: float
-    date: date
-    description: str | None = None
+    income_date: date
+    source: str | None = None

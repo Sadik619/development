@@ -1,14 +1,17 @@
+from sqlalchemy import extract, func
 from sqlalchemy import func
 from fastapi import APIRouter
 from storage.database import get_db
 from models.budget_model import Budget
 from models.expense_model import Expense
 from models.user_model import User
-
+from fastapi import HTTPException
+from models.category_model import Category
 from fastapi import Depends
 from auth.auth import get_current_user
 from sqlalchemy.orm import Session
 from schemas.expense import ExpenseCreate
+from services.querydata import QueryData
 router = APIRouter(
       prefix="",
       tags=["expenses"],
@@ -18,49 +21,26 @@ def get_me(
     current_user: User = Depends(get_current_user)
 ):
     return current_user
-# @router.post("/expenses")
-# async def create_expense(
-#     payload: ExpenseCreate,
-#     db: Session = Depends(get_db)
-# ):
-#     expense = Expense(**payload.dict())
 
-#     db.add(expense)
-#     db.commit()
-
-#     return {
-#         "message": "Expense Added"
-#     }
 @router.post("/expenses")
 def create_expense(
     payload: ExpenseCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    expense = Expense(
-        user_id=current_user.id,
-        category_id=payload.category_id,
-        amount=payload.amount,
-        description=payload.description,
-        expense_date=payload.expense_date,
+    return QueryData.create_expense(
+        db,
+        current_user.id,
+        payload,
     )
-
-    db.add(expense)
-    db.commit()
-    db.refresh(expense)
-
-    return expense
 @router.get("/expenses")
 def get_expenses(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    print(current_user)
 
-    expenses = (
-        db.query(Expense)
-        .filter(Expense.user_id == current_user.id)
-        .all()
-    )
+    expenses = QueryData.get_expense_by_user(db,current_user.id)
 
     return expenses
 @router.put("/expenses/{expense_id}")
@@ -71,26 +51,12 @@ def update_expense(
     current_user: User = Depends(get_current_user)
 ):
 
-    expense = (
-        db.query(Expense)
-        .filter(
-            Expense.id == expense_id,
-            Expense.user_id == current_user.id
-        )
-        .first()
+    return QueryData.update_expense(
+        db,
+        current_user.id,
+        expense_id,
+        payload,
     )
-
-    if not expense:
-        raise HTTPException(404, "Expense not found")
-
-    expense.category_id = payload.category_id
-    expense.amount = payload.amount
-    expense.description = payload.description
-    expense.expense_date = payload.expense_date
-
-    db.commit()
-
-    return {"message": "Expense updated successfully"}
 
 @router.delete("/expenses/{expense_id}")
 def delete_expense(
@@ -98,26 +64,10 @@ def delete_expense(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    expense = QueryData.delete_expense_id_and_user(db,current_user.id,expense_id)
 
-    expense = (
-        db.query(Expense)
-        .filter(
-            Expense.id == expense_id,
-            Expense.user_id == current_user.id
-        )
-        .first()
-    )
-
-    if not expense:
-        raise HTTPException(404, "Expense not found")
-
-    db.delete(expense)
-    db.commit()
-
-    return {"message": "Expense deleted successfully"}
-
-
-from sqlalchemy import extract, func
+    return {"message": f"Expense deleted successfully,{expense}"}
+  
 
 @router.get("/analytics/monthly-summary")
 def monthly_summary(
@@ -126,26 +76,13 @@ def monthly_summary(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    
+    income = QueryData.get_income_month_wise(db, current_user.id,month,year)
+    expense = QueryData.get_expense_month_wise(db, current_user.id,month,year)
 
-    income = (
-        db.query(func.coalesce(func.sum(Income.amount), 0))
-        .filter(
-            Income.user_id == current_user.id,
-            extract('month', Income.income_date) == month,
-            extract('year', Income.income_date) == year
-        )
-        .scalar()
-    )
+    print("income",income)
 
-    expense = (
-        db.query(func.coalesce(func.sum(Expense.amount), 0))
-        .filter(
-            Expense.user_id == current_user.id,
-            extract('month', Expense.expense_date) == month,
-            extract('year', Expense.expense_date) == year
-        )
-        .scalar()
-    )
+    print("expense",expense)
 
     return {
         "total_income": float(income),
@@ -162,25 +99,13 @@ def category_summary(
     current_user: User = Depends(get_current_user)
 ):
 
-    data = (
-        db.query(
-            Category.name,
-            func.sum(Expense.amount)
-        )
-        .join(Category)
-        .filter(
-            Expense.user_id == current_user.id,
-            extract('month', Expense.expense_date) == month,
-            extract('year', Expense.expense_date) == year
-        )
-        .group_by(Category.name)
-        .all()
-    )
-
+    expense =  QueryData.get_category_wise_expense(db,current_user.id,month,year)
+    for i in expense:
+        print("11111",i)
     return [
         {
-            "category": row[0],
-            "amount": float(row[1])
+            "category": row["category"],
+            "amount": float(row["amount"]),
         }
-        for row in data
+        for row in expense
     ]

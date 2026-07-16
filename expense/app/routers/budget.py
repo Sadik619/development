@@ -4,7 +4,7 @@ from storage.database import get_db
 from models.budget_model import Budget
 from models.expense_model import Expense
 from models.user_model import User
-
+from services.querydata import QueryData
 from fastapi import Depends
 from auth.auth import get_current_user
 from sqlalchemy.orm import Session
@@ -33,23 +33,9 @@ def get_budget(
     current_user: User = Depends(get_current_user)
 ):
 
-    budget = (
-        db.query(Budget)
-        .filter(
-            Budget.user_id == current_user.id,
-            Budget.month == month,
-            Budget.year == year
-        )
-        .first()
-    )
+    budget = QueryData.get_budget_by_userid_monthwise(db,current_user.id,month,year)
 
-    spent = (
-        db.query(func.coalesce(func.sum(Expense.amount), 0))
-        .filter(
-            Expense.user_id == current_user.id
-        )
-        .scalar()
-    )
+    spent = QueryData.get_spend_summary(db,current_user.id)
     
     return {
     "budget_amount": budget.amount,
@@ -68,28 +54,29 @@ def create_budget(
     # Example: assigning budget to user with id=1
     # Replace this with current_user.id when authentication is added
     user_id = current_user.id
+    budget = QueryData.create_budget(db, user_id, payload)
 
-    existing = db.query(Budget).filter(
-        Budget.user_id == user_id,
-        Budget.month == payload.month,
-        Budget.year == payload.year
-    ).first()
+    # existing = db.query(Budget).filter(
+    #     Budget.user_id == user_id,
+    #     Budget.month == payload.month,
+    #     Budget.year == payload.year
+    # ).first()
 
-    if existing:
-        raise HTTPException(
-            status_code=400,
-            detail="Budget already exists for this month."
-        )
+    # if budget:
+    #     raise HTTPException(
+    #         status_code=400,
+    #         detail="Budget already exists for this month."
+    #     )
 
-    budget = Budget(
-        user_id=user_id,
-        month=payload.month,
-        year=payload.year,
-        amount=payload.amount
-    )
+    # budget = Budget(
+    #     user_id=user_id,
+    #     month=payload.month,
+    #     year=payload.year,
+    #     amount=payload.amount
+    # )
 
-    db.add(budget)
-    db.commit()
-    db.refresh(budget)
+    # db.add(budget)
+    # db.commit()
+    # db.refresh(budget)
 
     return budget
