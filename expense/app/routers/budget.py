@@ -34,13 +34,14 @@ def get_budget(
 ):
 
     budget = QueryData.get_budget_by_userid_monthwise(db,current_user.id,month,year)
-
+    income = QueryData.get_income_month_wise(db,current_user.id,month,year)
     spent = QueryData.get_spend_summary(db,current_user.id)
     
     return {
     "budget_amount": budget.amount,
     "spent_amount": spent,
-    "remaining_amount": budget.amount - spent
+    "remaining_amount": budget.amount - spent,
+    "remaining account balance":income -spent
 } if budget else {}
 
 
