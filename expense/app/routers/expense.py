@@ -100,8 +100,6 @@ def category_summary(
 ):
 
     expense =  QueryData.get_category_wise_expense(db,current_user.id,month,year)
-    for i in expense:
-        print("11111",i)
     return [
         {
             "category": row["category"],
