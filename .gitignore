@@ -35,3 +35,19 @@ coverage/
 
 # Optional
 *.tsbuildinfo
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual Environment
+venv/
+.env
+
+# Node
+node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
